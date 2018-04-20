@@ -24,7 +24,8 @@ export default Ember.Mixin.create({
       model.eachAttribute(function(attr) {
         switch(Ember.typeOf(options[attr])) {
           case 'undefined':
-            copy.set(attr, _this.get(attr));
+            var value = _this.get(attr)
+            copy.set(attr, value ? JSON.parse(JSON.stringify(value)) : value);
             break;
           case 'null':
             copy.set(attr, null);

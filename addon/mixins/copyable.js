@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import DS from 'ember-data';
+import { computed } from '@ember/object';
 
 export default Ember.Mixin.create({
   copyable: true,
@@ -21,11 +22,21 @@ export default Ember.Mixin.create({
       copied[id] = copy;
       var queue = [];
 
-      model.eachAttribute(function(attr) {
+      model.eachAttribute((attr, { type, options: attributeOptions }) => {
         switch(Ember.typeOf(options[attr])) {
           case 'undefined':
-            var value = _this.get(attr)
-            copy.set(attr, value ? JSON.parse(JSON.stringify(value)) : value);
+						const value = _this.get(attr)
+						const transform = type && Ember.getOwner(_this).lookup(`transform:${type}`)
+            if (transform) {
+              copy.set(attr,
+                transform.deserialize(
+                  transform.serialize(value, attributeOptions),
+                  attributeOptions
+                )
+              )
+            } else {
+              copy.set(attr, value);
+            }
             break;
           case 'null':
             copy.set(attr, null);
